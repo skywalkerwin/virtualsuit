@@ -1,12 +1,249 @@
 #include "Arm.h"
 
-void Arm::armSetup(string c) {
+void Arm::armSetup(string c, int n) {
 	//ofSetLogLevel(OF_LOG_VERBOSE);
+	sidenum = n;
 	coms = c;
 	port.setup(c, 12000000);
 }
+void Arm::testDraw() {
+	if (sidenum == 0)ofSetColor(0, 255, 0);
+	else ofSetColor(255, 0, 0);
+	ofDrawRectangle(ofRandom(ofGetWidth()), ofRandom(ofGetHeight()), ofRandom(100), ofRandom(100));
+}
+void Arm::Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz) {
+	float q1 = q[i][0], q2 = q[i][1], q3 = q[i][2], q4 = q[i][3]; // short name local variable for readability
+	float norm; // vector norm
+	float f1, f2, f3; // objetive funcyion elements
+	float J_11or24, J_12or23, J_13or22, J_14or21, J_32, J_33; // objective function Jacobian elements
+	float qDot1, qDot2, qDot3, qDot4;
+	float hatDot1, hatDot2, hatDot3, hatDot4;
+	float gerrx, gerry, gerrz, gbiasx, gbiasy, gbiasz; // gyro bias error
 
+	// Auxiliary variables to avoid repeated arithmetic
+	float _halfq1 = 0.5 * q1;
+	float _halfq2 = 0.5 * q2;
+	float _halfq3 = 0.5 * q3;
+	float _halfq4 = 0.5 * q4;
+	float _2q1 = 2.0 * q1;
+	float _2q2 = 2.0 * q2;
+	float _2q3 = 2.0 * q3;
+	float _2q4 = 2.0 * q4;
+	float _2q1q3 = 2.0 * q1 * q3;
+	float _2q3q4 = 2.0 * q3 * q4;
+
+	// Normalise accelerometer measurement
+	norm = sqrt(ax * ax + ay * ay + az * az);
+	if (norm == 0.)
+		return; // handle NaN
+	norm = 1. / norm;
+	ax *= norm;
+	ay *= norm;
+	az *= norm;
+
+	// Compute the objective function and Jacobian
+	f1 = _2q2 * q4 - _2q1 * q3 - ax;
+	f2 = _2q1 * q2 + _2q3 * q4 - ay;
+	f3 = 1. - _2q2 * q2 - _2q3 * q3 - az;
+	J_11or24 = _2q3;
+	J_12or23 = _2q4;
+	J_13or22 = _2q1;
+	J_14or21 = _2q2;
+	J_32 = 2. * J_14or21;
+	J_33 = 2. * J_11or24;
+
+	// Compute the gradient (matrix multiplication)
+	hatDot1 = J_14or21 * f2 - J_11or24 * f1;
+	hatDot2 = J_12or23 * f1 + J_13or22 * f2 - J_32 * f3;
+	hatDot3 = J_12or23 * f2 - J_33 * f3 - J_13or22 * f1;
+	hatDot4 = J_14or21 * f1 + J_11or24 * f2;
+
+	// Normalize the gradient
+	norm = sqrt(hatDot1 * hatDot1 + hatDot2 * hatDot2 + hatDot3 * hatDot3 + hatDot4 * hatDot4);
+	hatDot1 /= norm;
+	hatDot2 /= norm;
+	hatDot3 /= norm;
+	hatDot4 /= norm;
+
+	// Compute estimated gyroscope biases
+	gerrx = _2q1 * hatDot2 - _2q2 * hatDot1 - _2q3 * hatDot4 + _2q4 * hatDot3;
+	gerry = _2q1 * hatDot3 + _2q2 * hatDot4 - _2q3 * hatDot1 - _2q4 * hatDot2;
+	gerrz = _2q1 * hatDot4 - _2q2 * hatDot3 + _2q3 * hatDot2 - _2q4 * hatDot1;
+
+	// Compute and remove gyroscope biases
+//        gbiasx += gerrx * deltat * zeta;
+//        gbiasy += gerry * deltat * zeta;
+//        gbiasz += gerrz * deltat * zeta;
+//        gx -= gbiasx;
+//        gy -= gbiasy;
+//        gz -= gbiasz;
+
+		// Compute the quaternion derivative
+	qDot1 = -_halfq2 * gx - _halfq3 * gy - _halfq4 * gz;
+	qDot2 = _halfq1 * gx + _halfq3 * gz - _halfq4 * gy;
+	qDot3 = _halfq1 * gy - _halfq2 * gz + _halfq4 * gx;
+	qDot4 = _halfq1 * gz + _halfq2 * gy - _halfq3 * gx;
+
+	// Compute then integrate estimated quaternion derivative
+	q1 += (qDot1 - (beta * hatDot1)) * deltat;
+	q2 += (qDot2 - (beta * hatDot2)) * deltat;
+	q3 += (qDot3 - (beta * hatDot3)) * deltat;
+	q4 += (qDot4 - (beta * hatDot4)) * deltat;
+
+	// Normalize the quaternion
+	norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4); // normalise quaternion
+	norm = 1. / norm;
+	q[i][0] = q1 * norm;
+	q[i][1] = q2 * norm;
+	q[i][2] = q3 * norm;
+	q[i][3] = q4 * norm;
+}
+
+void Arm::Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my,
+	float mz) {
+	// https://github.com/kriswiner/MPU9250/blob/master/quaternionFilters.ino
+	float q1 = q[i][0], q2 = q[i][1], q3 = q[i][2], q4 = q[i][3]; // short name local variable for readability
+	float norm;
+	float hx, hy, _2bx, _2bz;
+	float s1, s2, s3, s4;
+	float qDot1, qDot2, qDot3, qDot4;
+
+	// Auxiliary variables to avoid repeated arithmetic
+	float _2q1mx;
+	float _2q1my;
+	float _2q1mz;
+	float _2q2mx;
+	float _4bx;
+	float _4bz;
+	float _2q1 = 2. * q1;
+	float _2q2 = 2. * q2;
+	float _2q3 = 2. * q3;
+	float _2q4 = 2. * q4;
+	float _2q1q3 = 2. * q1 * q3;
+	float _2q3q4 = 2. * q3 * q4;
+	float q1q1 = q1 * q1;
+	float q1q2 = q1 * q2;
+	float q1q3 = q1 * q3;
+	float q1q4 = q1 * q4;
+	float q2q2 = q2 * q2;
+	float q2q3 = q2 * q3;
+	float q2q4 = q2 * q4;
+	float q3q3 = q3 * q3;
+	float q3q4 = q3 * q4;
+	float q4q4 = q4 * q4;
+	//		float beta = ;
+			// Normalise accelerometer measurement
+	norm = sqrt(ax * ax + ay * ay + az * az);
+	if (norm == 0.)
+		return; // handle NaN
+	norm = 1. / norm;
+	ax *= norm;
+	ay *= norm;
+	az *= norm;
+
+	// Normalise magnetometer measurement
+	norm = sqrt(mx * mx + my * my + mz * mz);
+	if (norm == 0.)
+		return; // handle NaN
+	norm = 1. / norm;
+	mx *= norm;
+	my *= norm;
+	mz *= norm;
+
+	// Reference direction of Earth's magnetic field
+	_2q1mx = 2. * q1 * mx;
+	_2q1my = 2. * q1 * my;
+	_2q1mz = 2. * q1 * mz;
+	_2q2mx = 2. * q2 * mx;
+	hx = mx * q1q1 - _2q1my * q4 + _2q1mz * q3 + mx * q2q2 + _2q2 * my * q3 + _2q2 * mz * q4 - mx * q3q3
+		- mx * q4q4;
+	hy = _2q1mx * q4 + my * q1q1 - _2q1mz * q2 + _2q2mx * q3 - my * q2q2 + my * q3q3 + _2q3 * mz * q4 - my * q4q4;
+	_2bx = sqrt(hx * hx + hy * hy);
+	_2bz = -_2q1mx * q3 + _2q1my * q2 + mz * q1q1 + _2q2mx * q4 - mz * q2q2 + _2q3 * my * q4 - mz * q3q3
+		+ mz * q4q4;
+	_4bx = 2. * _2bx;
+	_4bz = 2. * _2bz;
+
+	// Gradient decent algorithm corrective step
+	s1 = -_2q3 * (2. * q2q4 - _2q1q3 - ax) + _2q2 * (2. * q1q2 + _2q3q4 - ay)
+		- _2bz * q3 * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
+		+ (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+		+ _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz);
+	s2 = _2q4 * (2. * q2q4 - _2q1q3 - ax) + _2q1 * (2. * q1q2 + _2q3q4 - ay)
+		- 4. * q2 * (1. - 2. * q2q2 - 2. * q3q3 - az)
+		+ _2bz * q4 * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
+		+ (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+		+ (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz);
+	s3 = -_2q1 * (2. * q2q4 - _2q1q3 - ax) + _2q4 * (2. * q1q2 + _2q3q4 - ay)
+		- 4. * q3 * (1. - 2. * q2q2 - 2. * q3q3 - az)
+		+ (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
+		+ (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+		+ (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz);
+	s4 = _2q2 * (2. * q2q4 - _2q1q3 - ax) + _2q3 * (2. * q1q2 + _2q3q4 - ay)
+		+ (-_4bx * q4 + _2bz * q2) * (_2bx * (0.5 - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx)
+		+ (-_2bx * q1 + _2bz * q3) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my)
+		+ _2bx * q2 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5 - q2q2 - q3q3) - mz);
+	norm = sqrt(s1 * s1 + s2 * s2 + s3 * s3 + s4 * s4); // normalise step magnitude
+	norm = 1. / norm;
+	s1 *= norm;
+	s2 *= norm;
+	s3 *= norm;
+	s4 *= norm;
+
+	// Compute rate of change of quaternion
+	qDot1 = 0.5 * (-q2 * gx - q3 * gy - q4 * gz) - beta * s1;
+	qDot2 = 0.5 * (q1 * gx + q3 * gz - q4 * gy) - beta * s2;
+	qDot3 = 0.5 * (q1 * gy - q2 * gz + q4 * gx) - beta * s3;
+	qDot4 = 0.5 * (q1 * gz + q2 * gy - q3 * gx) - beta * s4;
+
+	// Integrate to yield quaternion
+	q1 += qDot1 * deltat;
+	q2 += qDot2 * deltat;
+	q3 += qDot3 * deltat;
+	q4 += qDot4 * deltat;
+	norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4); // normalise quaternion
+	norm = 1. / norm;
+	q[i][0] = q1 * norm;
+	q[i][1] = q2 * norm;
+	q[i][2] = q3 * norm;
+	q[i][3] = q4 * norm;
+}
+
+void Arm::sensorfusion() {
+	for (int i = 0; i < 3; i++) {
+		Madgwick9(i, magno[i][0], magno[i][1], magno[i][2], magno[i][3] * PI / 180., magno[i][4] * PI / 180.,
+			magno[i][5] * PI / 180., magno[i][7], magno[i][6], magno[i][8]);
+		yaw[i] = atan2(2. * (q[i][1] * q[i][2] + q[i][0] * q[i][3]),
+			q[i][0] * q[i][0] + q[i][1] * q[i][1] - q[i][2] * q[i][2] - q[i][3] * q[i][3]);
+		pitch[i] = -asin(2. * (q[i][1] * q[i][3] - q[i][0] * q[i][2]));
+		roll[i] = atan2(2. * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
+			q[i][0] * q[i][0] - q[i][1] * q[i][1] - q[i][2] * q[i][2] + q[i][3] * q[i][3]);
+		pitch[i] *= 180. / PI;
+		yaw[i] *= 180. / PI;
+		yaw[i] -= 8; // Declination at Berkley, Colorado.
+		roll[i] *= 180.0f / PI;
+	}
+
+	for (int i = 3; i < 8; i++) {
+		Madgwick6(i, imu[i - 3][0], imu[i - 3][1], imu[i - 3][2], imu[i - 3][3] * PI / 180.,
+			imu[i - 3][4] * PI / 180., imu[i - 3][5] * PI / 180.);
+		yaw[i] = atan2(2.0f * (q[i][1] * q[i][2] + q[i][0] * q[i][3]),
+			q[i][0] * q[i][0] + q[i][1] * q[i][1] - q[i][2] * q[i][2] - q[i][3] * q[i][3]);
+		pitch[i] = -asin(2.0 * (q[i][1] * q[i][3] - q[i][0] * q[i][2]));
+		roll[i] = atan2(2.0 * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
+			q[i][0] * q[i][0] - q[i][1] * q[i][1] - q[i][2] * q[i][2] + q[i][3] * q[i][3]);
+		pitch[i] *= 180.0 / PI;
+		yaw[i] *= 180.0 / PI;
+		roll[i] *= 180.0 / PI;
+	}
+	//for (int i = 0; i < 8; i++) {
+	//	ofLog() << i << ": " << " Yaw: " << yaw[i] << " Pitch: " << pitch[i] << "Roll: " << -roll[i] << endl;
+	//}
+
+}
+	
 void Arm::armUpdate() {
+	updated = 0;
 	if (firstContact == false) {
 		char myByte = port.readByte();
 		if (myByte == OF_SERIAL_NO_DATA)
@@ -94,24 +331,39 @@ void Arm::armUpdate() {
 							off = off + 1;
 							if (off == nframes) { off = 0; }
 						}
-						deltat = ttime / 1000000.0f;
+						deltat = ttime / 100000.0f;
 					}
-					//sensorfusion();
+					sensorfusion();
 					hcount++;
 					if (hcount == histlength) { hcount = 0; }
 				}
 			}
 		}
 	}
-	ofLog() << coms<<": "<<ttime << endl;
+	//for (int i = 0; i < 3; i++) {
+	//	ofLog() << i << endl;
+	//	for (int j = 0; j < 9; j++) {
+	//		ofLog() << magno[i][j];
+	//	}
+	//}
+	//updated = 1;
+	//ofLog() << coms<<": "<<ttime << endl;
 }
 
 Arm::Arm()
 {
-
+	for (int i = 0; i < 8; i++) {
+		q[i][0] = 1.0;
+		q[i][1] = 0.;
+		q[i][2] = 0.;
+		q[i][3] = 0.;
+	}
 }
-
 
 Arm::~Arm()
 {
+	port.flush();
+	port.close();
+	stop();
+	waitForThread();
 }

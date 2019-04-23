@@ -3,13 +3,14 @@
 #include "Arm.h"
 using namespace std;
 
+
 class Body
 {
 public:
 	Body();
 	void bodySetup();
-	//void setupArm(Arm arm, string com);
-	void bodyUpdate();
+	void testimus(Arm &a);
+	void bodyDraw();
 
 	~Body();
 

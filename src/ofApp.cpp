@@ -4,18 +4,30 @@
 void ofApp::setup(){
 	ofSetVerticalSync(false);
 	ofSetFrameRate(500);
+	//ofSetFrameRate(60);
 	ofSetColor(0, 255, 0);
+	ofBackground(0);
 	mybody.bodySetup();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	mybody.bodyUpdate();
+	std::stringstream strm;
+	strm << "fps: " << ofGetFrameRate();
+	ofSetWindowTitle(strm.str());
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-
+	//mybody.bodyDraw();
+	ofPushMatrix();
+	ofTranslate(1 * ofGetWidth() / 4, 0, 0);
+	mybody.testimus(mybody.larm);
+	ofPopMatrix();
+	ofPushMatrix();
+	ofTranslate(3 * ofGetWidth() / 4, 0, 0);
+	mybody.testimus(mybody.rarm);
+	ofPopMatrix();
 }
 
 //--------------------------------------------------------------
@@ -71,4 +83,8 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+void ofApp::exit() {
+	mybody.~Body();
 }
