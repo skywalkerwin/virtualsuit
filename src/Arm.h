@@ -9,29 +9,12 @@ class Arm : public ofThread
 public:
 	void armSetup(string com, int num);
 	void armUpdate();
-	void start() {
-		startThread();
-	}
-	void stop() {
-		std::unique_lock<std::mutex> lck(mutex);
-		stopThread();
-		condition.notify_all();
-	}
-
-	void threadedFunction() {
-		while (isThreadRunning()) {
-			//std::unique_lock<std::mutex> lock(mutex);
-			armUpdate();
-			//condition.wait(lock);
-		}
-	}
-
+	void start();
+	void stop();
+	void threadedFunction();
 	void Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz);
-	void Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my,
-		float mz);
-
+	void Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void sensorfusion();
-
 	void testDraw();		
 
 	Arm();
@@ -63,8 +46,8 @@ public:
 	float magmax[3][3] = { { -60000, -60000, -60000 }, { -60000, -60000, -60000 }, { -60000, -60000, -60000 } };
 	float magbias[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	float magscale[3][3] = { { 1, 1, 1 }, { 1, 1, 1 }, { 1, 1, 1 } };
-	float avgrad[3] = { 1, 1, 1 };
 	float scalebias[3][3] = { { 1, 1, 1 }, { 1, 1, 1 }, { 1, 1, 1 } };
+	float avgrad[3] = { 1, 1, 1 };
 	// touch values
 	int ttime = 0;
 	int switchbinary = 0;
@@ -92,9 +75,9 @@ public:
 	float pitch[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	float yaw[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	float mx = 0;
-	float my = 0;
-	float mz = 0;
+	//float mx = 0;
+	//float my = 0;
+	//float mz = 0;
 	//thread stuff
 	std::condition_variable condition;
 

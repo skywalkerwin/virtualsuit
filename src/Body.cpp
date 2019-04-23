@@ -11,6 +11,10 @@ void Body::bodySetup() {
 	larm.start();
 	rarm.start();
 }
+void Body::bodyUpdate() {
+	//larm.armUpdate();
+	//rarm.armUpdate();
+}
 void Body::testimus(Arm &aArm) {
 	for (int i = 0; i < 8; i++) {
 		ofPushMatrix();
@@ -20,10 +24,9 @@ void Body::testimus(Arm &aArm) {
 		ofRotateXDeg(aArm.pitch[i]);
 		ofRotateYDeg(-aArm.roll[i]);
 		ofSetColor(0, 255, 0);
-		ofFill();
+		ofNoFill();
 		ofDrawBox(50);
 		ofPopMatrix();
-		ofLog() << i << ": "<< " Yaw: " << aArm.yaw[i] << " Pitch: " << aArm.pitch[i] << "Roll: " << -aArm.roll[i] << endl;
 	}
 }
 void Body::bodyDraw() {
