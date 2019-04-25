@@ -15,6 +15,7 @@ public:
 	void Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz);
 	void Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void sensorfusion();
+	void testimus();
 	void testDraw();		
 
 	Arm();

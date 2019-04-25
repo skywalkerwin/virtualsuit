@@ -5,7 +5,9 @@ void Arm::armSetup(string c, int n) {
 	sidenum = n;
 	coms = c;
 	port.setup(c, 12000000);
+	startThread();
 }
+
 void Arm::start() {
 	startThread();
 }
@@ -21,6 +23,21 @@ void Arm::threadedFunction() {
 		//std::unique_lock<std::mutex> lock(mutex);
 		armUpdate();
 		//condition.wait(lock);
+	}
+}
+
+void Arm::testimus() {
+	for (int i = 0; i < 8; i++) {
+		ofPushMatrix();
+		ofTranslate(0, (1 + i) * ofGetHeight() / 9, 0);
+		ofRotateXDeg(-90);
+		ofRotateZDeg(yaw[i]);
+		ofRotateXDeg(pitch[i]);
+		ofRotateYDeg(roll[i]);
+		ofSetColor(0, 255, 0);
+		ofNoFill();
+		ofDrawBox(50);
+		ofPopMatrix();
 	}
 }
 

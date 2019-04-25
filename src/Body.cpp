@@ -8,26 +8,22 @@
 void Body::bodySetup() {
 	larm.armSetup(leftcom, 0);
 	rarm.armSetup(rightcom, 1);
-	larm.start();
-	rarm.start();
+	//larm.start();
+	//rarm.start();
 }
 void Body::bodyUpdate() {
 	//larm.armUpdate();
 	//rarm.armUpdate();
 }
-void Body::testimus(Arm &aArm) {
-	for (int i = 0; i < 8; i++) {
-		ofPushMatrix();
-		ofTranslate(0, (1 + i) * ofGetHeight() / 9, 0);
-		ofRotateXDeg(-90);
-		ofRotateZDeg(aArm.yaw[i]);
-		ofRotateXDeg(aArm.pitch[i]);
-		ofRotateYDeg(-aArm.roll[i]);
-		ofSetColor(0, 255, 0);
-		ofNoFill();
-		ofDrawBox(50);
-		ofPopMatrix();
-	}
+void Body::testimus() {
+	ofPushMatrix();
+	ofTranslate(1 * ofGetWidth() / 4, 0, 0);
+	larm.testimus();
+	ofPopMatrix();
+	ofPushMatrix();
+	ofTranslate(3 * ofGetWidth() / 4, 0, 0);
+	rarm.testimus();
+	ofPopMatrix();
 }
 void Body::bodyDraw() {
 	//ofPushMatrix();
