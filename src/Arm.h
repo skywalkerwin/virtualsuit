@@ -9,14 +9,18 @@ class Arm : public ofThread
 public:
 	void armSetup(string com, int num);
 	void armUpdate();
-	void start();
-	void stop();
-	void threadedFunction();
+	void armDraw();
+	void handDraw();
+
 	void Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz);
 	void Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void sensorfusion();
 	void testimus();
 	void testDraw();		
+
+	void start();
+	void stop();
+	void threadedFunction();
 
 	Arm();
 	~Arm();

@@ -10,8 +10,11 @@ public:
 	Body();
 	void bodySetup();
 	void bodyUpdate();
-	void testimus();
 	void bodyDraw();
+
+
+	void testimus();
+
 
 	~Body();
 

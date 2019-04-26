@@ -7,7 +7,57 @@ void Arm::armSetup(string c, int n) {
 	port.setup(c, 12000000);
 	startThread();
 }
+void Arm::armDraw() {
+	int d = sidenum;
+	int ulen = 400;
+	int llen = 300;
+	ofPushMatrix();
 
+	ofTranslate(d * 100, 0, -200);
+	ofSetColor(255);
+	ofNoFill();
+	ofDrawSphere(30);
+	ofRotateZDeg(yaw[0]);
+	ofRotateXDeg(pitch[0]);
+	ofRotateYDeg(-roll[0]);
+	ofTranslate(d * 0, ulen / 2, 0);
+	ofSetColor(0, 255, 0);
+	ofDrawBox(50, ulen, 50);
+	ofTranslate(0, ulen / 2, 0);
+	
+	ofSetColor(255);
+	ofDrawSphere(20);
+	ofRotateYDeg(roll[0]);
+	ofRotateXDeg(-pitch[0]);
+	ofRotateZDeg(-yaw[0]);
+	ofRotateZDeg(yaw[1]);
+	ofRotateXDeg(pitch[1]);
+	ofRotateYDeg(-roll[1]);
+	ofTranslate(0, llen / 2, 0);
+	ofSetColor(0, 255, 0);
+	ofDrawBox(40, llen, 40);
+	ofTranslate(0, llen / 2, 0);
+
+	handDraw();
+	ofPopMatrix();
+
+}
+
+void Arm::handDraw() {
+	ofSetColor(255);
+	ofDrawSphere(20);
+	int d = sidenum;
+	int len = 200;
+	ofRotateYDeg(roll[01]);
+	ofRotateXDeg(-pitch[1]);
+	ofRotateZDeg(-yaw[1]);
+	ofRotateZDeg(yaw[2]);
+	ofRotateXDeg(pitch[2]);
+	ofRotateYDeg(-roll[2]);
+	ofTranslate(0, len / 2, 0);
+	ofSetColor(0, 255, 0);
+	ofDrawBox(30, len, 30);
+}
 void Arm::start() {
 	startThread();
 }
