@@ -55,6 +55,10 @@ void Arm::handDraw() {
 	ofRotateXDeg(pitch[2]);
 	ofRotateYDeg(-roll[2]);
 	ofTranslate(0, len / 2, 0);
+	//vec4 origin(0, 0, 0, 1); // x = 0, y = 0, z = 0 (1 for homogenous coord)
+	modelMatrix = inverse(ofGetCurrentViewMatrix()) * ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
+	//origin = modelMatrix * origin;
+	//ofTranslate((vec3)origin);
 	ofSetColor(0, 255, 0);
 	ofDrawBox(30, len, 30);
 }

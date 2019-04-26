@@ -53,6 +53,11 @@ void ofApp::draw(){
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
 	mybody.bodyDraw();
 	ofPopMatrix();
+	ofSetColor(255, 0, 0);
+	vec4 origin(0, 0, 0, 1);
+	vec3 lstart = mybody.larm.modelMatrix * origin;
+	vec3 rstart = mybody.rarm.modelMatrix * origin;
+	ofDrawLine(lstart, rstart);
 }
 
 //--------------------------------------------------------------

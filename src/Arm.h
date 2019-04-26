@@ -3,6 +3,7 @@
 #include <atomic>
 
 using namespace std;
+using namespace glm;
 
 class Arm : public ofThread
 {
@@ -24,7 +25,8 @@ public:
 
 	Arm();
 	~Arm();
-
+	//current matrix stuff
+	mat4 modelMatrix;
 	// serial communication variables
 	int sidenum;
 	ofSerial port;
