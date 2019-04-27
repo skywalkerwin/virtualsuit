@@ -1,75 +1,106 @@
 #include "Arm.h"
 
-void Arm::armSetup(string c, int n) {
+void Arm::armSetup(string c, ofBoxPrimitive &p, int n) {
 	//ofSetLogLevel(OF_LOG_VERBOSE);
-	sidenum = n;
+	dir = n;
 	coms = c;
+	string sidename = " ";
+	if (n == -1) sidename = "Left"; 
+	else sidename = "Right";
+	string tname = c + " " + sidename;
+	setThreadName(tname);
+	//ofLog() << "THREAD NAME  "<<getThreadName() << endl;
+	//ofLog() << "THREAD ID  " << getThreadId() << endl;
+	ulen = ofGetHeight() / 3;
+	llen = ofGetHeight() / 4;
+	hlen = ofGetHeight() / 8;
+	body = p;
+	upperArm.setParent(body);
+	upperArm.set(50, ulen, 50);
+	lowerArm.setParent(upperArm);
+	lowerArm.set(40, llen, 40);
+	hand.setParent(lowerArm);
+	hand.set(30, hlen, 30);
+	int reso = 1;
+	upperArm.setResolution(reso);
+	lowerArm.setResolution(reso);
+	hand.setResolution(reso);
+	ofLog() << sidename << "  parent:  " << upperArm.getParent() << endl;
 	port.setup(c, 12000000);
 	startThread();
-}
-void Arm::armDraw() {
-	int d = sidenum;
-	int ulen = 400;
-	int llen = 300;
-	ofPushMatrix();
 
-	ofTranslate(d * 100, 0, -200);
-	ofSetColor(255);
-	ofNoFill();
-	ofDrawSphere(30);
-	ofRotateZDeg(yaw[0]);
-	ofRotateXDeg(pitch[0]);
-	ofRotateYDeg(-roll[0]);
-	ofTranslate(d * 0, ulen / 2, 0);
+}
+
+void Arm::armDraw() {
+	upperArm.setPosition(body.getGlobalPosition());
+	vec3 pos(dir * 100, 0, -200);
+	upperArm.move(pos);
+	shoulderpos = upperArm.getGlobalPosition();
+	upperArm.rotateDeg(yaw[0], upperArm.getZAxis());
+	upperArm.rotateDeg(pitch[0], upperArm.getXAxis());
+	upperArm.rotateDeg(roll[0], upperArm.getYAxis());
+	upperArm.boom(ulen / 2);
 	ofSetColor(0, 255, 0);
-	ofDrawBox(50, ulen, 50);
-	ofTranslate(0, ulen / 2, 0);
-	
-	ofSetColor(255);
-	ofDrawSphere(20);
-	ofRotateYDeg(roll[0]);
-	ofRotateXDeg(-pitch[0]);
-	ofRotateZDeg(-yaw[0]);
-	ofRotateZDeg(yaw[1]);
-	ofRotateXDeg(pitch[1]);
-	ofRotateYDeg(-roll[1]);
-	ofTranslate(0, llen / 2, 0);
+	upperArm.draw();
+	ofSetColor(0);
+	upperArm.drawWireframe();
+	upperArm.boom(ulen / 2);
+	elbowpos = upperArm.getGlobalPosition();
+	upperArm.resetTransform();
+
+	lowerArm.setGlobalPosition(elbowpos);
+	lowerArm.rotateDeg(yaw[1], lowerArm.getZAxis());
+	lowerArm.rotateDeg(pitch[1], lowerArm.getXAxis());
+	lowerArm.rotateDeg(roll[1], lowerArm.getYAxis());
+	lowerArm.boom(llen / 2);
 	ofSetColor(0, 255, 0);
-	ofDrawBox(40, llen, 40);
-	ofTranslate(0, llen / 2, 0);
+	lowerArm.draw();
+	ofSetColor(0);
+	lowerArm.drawWireframe();
+	lowerArm.boom(llen / 2);
+	wristpos = lowerArm.getGlobalPosition();
+	lowerArm.resetTransform();
 
 	handDraw();
-	ofPopMatrix();
-
+	jointsDraw();
 }
 
 void Arm::handDraw() {
-	ofSetColor(255);
-	ofDrawSphere(20);
-	int d = sidenum;
-	int len = 200;
-	ofRotateYDeg(roll[01]);
-	ofRotateXDeg(-pitch[1]);
-	ofRotateZDeg(-yaw[1]);
-	ofRotateZDeg(yaw[2]);
-	ofRotateXDeg(pitch[2]);
-	ofRotateYDeg(-roll[2]);
-	ofTranslate(0, len / 2, 0);
-	//vec4 origin(0, 0, 0, 1); // x = 0, y = 0, z = 0 (1 for homogenous coord)
-	modelMatrix = inverse(ofGetCurrentViewMatrix()) * ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
-	//origin = modelMatrix * origin;
-	//ofTranslate((vec3)origin);
+	hand.setGlobalPosition(wristpos);
+	hand.rotateDeg(yaw[2], hand.getZAxis());
+	hand.rotateDeg(pitch[2], hand.getXAxis());
+	hand.rotateDeg(roll[2], hand.getYAxis());
+	hand.boom(hlen / 2);
 	ofSetColor(0, 255, 0);
-	ofDrawBox(30, len, 30);
+	hand.draw();
+	ofSetColor(0);
+	hand.drawWireframe();
+	hand.boom(hlen / 2);
+	handpos = hand.getGlobalPosition();
+	hand.resetTransform();
 }
+
+void Arm::jointsDraw() {
+	ofSetColor(200, 200, 0);
+	ofDrawSphere(shoulderpos, 25);
+	ofSetColor(150, 150, 0);
+	ofDrawSphere(elbowpos, 18);
+	ofSetColor(100, 100, 0);
+	ofDrawSphere(wristpos, 12);
+}
+
 void Arm::start() {
 	startThread();
 }
 
 void Arm::stop() {
+	while (updated == 0) {
+	}
 	std::unique_lock<std::mutex> lck(mutex);
 	stopThread();
 	condition.notify_all();
+	port.close();
+
 }
 
 void Arm::threadedFunction() {
@@ -94,11 +125,110 @@ void Arm::testimus() {
 		ofPopMatrix();
 	}
 }
+	
+void Arm::armUpdate() {
+	updated = 0;
+	if (firstContact == false) {
+		char myByte = port.readByte();
+		if (myByte == OF_SERIAL_NO_DATA)
+			ofLog() << "no data was read";
+		else if (myByte == OF_SERIAL_ERROR)
+			ofLog() << "an error occurred";
+		else {
+			port.flush();
+			firstContact = true;
+			port.writeByte('A');
+		}
+	}
+	else {
+		if (port.available() > 121) {
+			int res = port.readBytes(inBuffer, 122);
+			port.writeByte('A');
+			for (int i = 0; i < 3; i++) {
+				// ACCEL
+				magno[i][0] = (int16_t)((inBuffer[0 + (i * 18)] << 8 | inBuffer[1 + (i * 18)] & 0xff));
+				magno[i][1] = (int16_t)((inBuffer[2 + (i * 18)] << 8 | inBuffer[3 + (i * 18)] & 0xff));
+				magno[i][2] = (int16_t)((inBuffer[4 + (i * 18)] << 8 | inBuffer[5 + (i * 18)] & 0xff));
+				// GYRO
+				magno[i][3] = (int16_t)((inBuffer[6 + (i * 18)] << 8 | inBuffer[7 + (i * 18)] & 0xff));
+				magno[i][4] = (int16_t)((inBuffer[8 + (i * 18)] << 8 | inBuffer[9 + (i * 18)] & 0xff));
+				magno[i][5] = (int16_t)((inBuffer[10 + (i * 18)] << 8 | inBuffer[11 + (i * 18)] & 0xff));
+				// MAGNO
+				magno[i][6] = (int16_t)((inBuffer[12 + (i * 18)] << 8 | inBuffer[13 + (i * 18)] & 0xff));
+				magno[i][7] = (int16_t)((inBuffer[14 + (i * 18)] << 8 | inBuffer[15 + (i * 18)] & 0xff));
+				magno[i][8] = (int16_t)((inBuffer[16 + (i * 18)] << 8 | inBuffer[17 + (i * 18)] & 0xff));
+				for (int j = 0; j < 9; j++) {
+					if (magno[i][j] > negcheck) { //magno[i][j] = -(magno[i][j] - negcheck);//??????????????????????
+					}
+					if (j < 3) magno[i][j] = magno[i][j] * ascale;
+					else if (j > 2 && j < 6) magno[i][j] = magno[i][j] * gscale;
+					else {
+						//magno[i][j-6] = magno[i][j-6];
+						if (magno[i][j] > magmax[i][j - 6]) { magmax[i][j - 6] = magno[i][j]; }
+						if (magno[i][j] < magmin[i][j - 6]) { magmin[i][j - 6] = magno[i][j]; }
+						magbias[i][j - 6] = (magmax[i][j - 6] + magmin[i][j - 6]) / 2;
+						magscale[i][j - 6] = (magmax[i][j - 6] - magmin[i][j - 6]) / 2;
+						avgrad[i] = (magscale[i][0] + magscale[i][1] + magscale[i][2]) / 3;
+						if (magscale[i][j - 6] != 0) { scalebias[i][j - 6] = avgrad[i] / magscale[i][j - 6]; }
+						magno[i][j] -= magbias[i][j - 6];
+						magno[i][j] *= scalebias[i][j - 6];
+					}
+					//magno[i][j]=(float)(magno[i][j]*(((magadj[(-6+j)]-128) *.5)/128)+1);
+					// APPEND TO HISTORIES
+					for (int j = 0; j < 9; j++) {
+						nmag[i][j][off] = magno[i][j];
+						mhist[i][j][hcount] = magno[i][j];
+					}
+				}
+			}
+			// 5x imu6
+			for (int i = 0; i < 5; i++) {
+				// ACCEL
+				imu[i][0] = (int16_t)((inBuffer[54 + (i * 12)] << 8) | (inBuffer[55 + (i * 12)] & 0xff));
+				imu[i][1] = (int16_t)((inBuffer[56 + (i * 12)] << 8) | (inBuffer[57 + (i * 12)] & 0xff));
+				imu[i][2] = (int16_t)((inBuffer[58 + (i * 12)] << 8) | (inBuffer[59 + (i * 12)] & 0xff));
+				// GYRO
+				imu[i][3] = (int16_t)((inBuffer[60 + (i * 12)] << 8) | (inBuffer[61 + (i * 12)] & 0xff));
+				imu[i][4] = (int16_t)((inBuffer[62 + (i * 12)] << 8) | (inBuffer[63 + (i * 12)] & 0xff));
+				imu[i][5] = (int16_t)((inBuffer[64 + (i * 12)] << 8) | (inBuffer[65 + (i * 12)] & 0xff));
 
-void Arm::testDraw() {
-	if (sidenum == 0)ofSetColor(0, 255, 0);
-	else ofSetColor(255, 0, 0);
-	ofDrawRectangle(ofRandom(ofGetWidth()), ofRandom(ofGetHeight()), ofRandom(100), ofRandom(100));
+				for (int j = 0; j < 6; j++) {
+					if (imu[i][j] > negcheck) {//imu[i][j] = -(imu[i][j] - negcheck);
+						if (j < 3) { imu[i][j] = imu[i][j] * ascale; }
+						else { imu[i][j] = imu[i][j] * gscale; }
+					}
+					// APPEND TO HISTORIES
+					for (int j = 0; j < 6; j++) {
+						nimu[i][j][off] = imu[i][j];
+						ihist[i][j][hcount] = imu[i][j];
+					}
+				}
+			}
+			// touch stuff
+			{
+				thumbPressure = ((inBuffer[114] << 8) | (inBuffer[115] & 0xff));
+				if (thumbPressure > maxpress) { maxpress = thumbPressure; }
+				if (thumbPressure < minpress) { minpress = thumbPressure; }
+				rangepress = maxpress - minpress;
+				normpress = (1.0f * thumbPressure - minpress) / rangepress;
+				switches[0] = 1 - inBuffer[116];
+				switches[1] = 1 - inBuffer[117];
+				switches[2] = 1 - inBuffer[118];
+				switches[3] = 1 - inBuffer[119];
+				switchbinary = (switches[3] << 3 | switches[2] << 2 | switches[1] << 1 | switches[0]);
+				ttime = ((inBuffer[120] << 8) | (inBuffer[121] & 0xff));
+			}
+			off = off + 1;
+			if (off == nframes) { off = 0; }
+			deltat = ttime / 1000000.0f;
+			hcount++;
+			if (hcount == histlength) { hcount = 0; }
+			sensorfusion();
+		}
+	}
+	updated = 1;
+	//ofLog() << coms << "ttime : "<<ttime << endl;
+	//ofLog() << coms << "deltat: " << deltat << endl;
 }
 
 void Arm::Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz) {
@@ -108,7 +238,8 @@ void Arm::Madgwick6(int i, float ax, float ay, float az, float gx, float gy, flo
 	float J_11or24, J_12or23, J_13or22, J_14or21, J_32, J_33; // objective function Jacobian elements
 	float qDot1, qDot2, qDot3, qDot4;
 	float hatDot1, hatDot2, hatDot3, hatDot4;
-	float gerrx, gerry, gerrz, gbiasx, gbiasy, gbiasz; // gyro bias error
+	float gerrx, gerry, gerrz;
+	//float gbiasx, gbiasy, gbiasz; // gyro bias error
 
 	// Auxiliary variables to avoid repeated arithmetic
 	float _halfq1 = 0.5 * q1;
@@ -306,7 +437,7 @@ void Arm::sensorfusion() {
 		yaw[i] = atan2(2. * (q[i][1] * q[i][2] + q[i][0] * q[i][3]),
 			q[i][0] * q[i][0] + q[i][1] * q[i][1] - q[i][2] * q[i][2] - q[i][3] * q[i][3]);
 		pitch[i] = -asin(2. * (q[i][1] * q[i][3] - q[i][0] * q[i][2]));
-		roll[i] = atan2(2. * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
+		roll[i] = -atan2(2. * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
 			q[i][0] * q[i][0] - q[i][1] * q[i][1] - q[i][2] * q[i][2] + q[i][3] * q[i][3]);
 		pitch[i] *= 180. / PI;
 		yaw[i] *= 180. / PI;
@@ -320,7 +451,7 @@ void Arm::sensorfusion() {
 		yaw[i] = atan2(2.0 * (q[i][1] * q[i][2] + q[i][0] * q[i][3]),
 			q[i][0] * q[i][0] + q[i][1] * q[i][1] - q[i][2] * q[i][2] - q[i][3] * q[i][3]);
 		pitch[i] = -asin(2.0 * (q[i][1] * q[i][3] - q[i][0] * q[i][2]));
-		roll[i] = atan2(2.0 * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
+		roll[i] = -atan2(2.0 * (q[i][0] * q[i][1] + q[i][2] * q[i][3]),
 			q[i][0] * q[i][0] - q[i][1] * q[i][1] - q[i][2] * q[i][2] + q[i][3] * q[i][3]);
 		pitch[i] *= 180.0 / PI;
 		yaw[i] *= 180.0 / PI;
@@ -330,110 +461,6 @@ void Arm::sensorfusion() {
 	//	ofLog() << i << ": " << " Yaw: " << yaw[i] << " Pitch: " << pitch[i] << "Roll: " << -roll[i] << endl;
 	//}
 
-}
-	
-void Arm::armUpdate() {
-	updated = 0;
-	if (firstContact == false) {
-		char myByte = port.readByte();
-		if (myByte == OF_SERIAL_NO_DATA)
-			ofLog() << "no data was read";
-		else if (myByte == OF_SERIAL_ERROR)
-			ofLog() << "an error occurred";
-		else {
-			port.flush();
-			firstContact = true;
-			port.writeByte('A');
-		}
-	}
-	else {
-		if (port.available() > 121) {
-			int res = port.readBytes(inBuffer, 122);
-			port.writeByte('A');
-			for (int i = 0; i < 3; i++) {
-				// ACCEL
-				magno[i][0] = (int16_t)((inBuffer[0 + (i * 18)] << 8 | inBuffer[1 + (i * 18)] & 0xff));
-				magno[i][1] = (int16_t)((inBuffer[2 + (i * 18)] << 8 | inBuffer[3 + (i * 18)] & 0xff));
-				magno[i][2] = (int16_t)((inBuffer[4 + (i * 18)] << 8 | inBuffer[5 + (i * 18)] & 0xff));
-				// GYRO
-				magno[i][3] = (int16_t)((inBuffer[6 + (i * 18)] << 8 | inBuffer[7 + (i * 18)] & 0xff));
-				magno[i][4] = (int16_t)((inBuffer[8 + (i * 18)] << 8 | inBuffer[9 + (i * 18)] & 0xff));
-				magno[i][5] = (int16_t)((inBuffer[10 + (i * 18)] << 8 | inBuffer[11 + (i * 18)] & 0xff));
-				// MAGNO
-				magno[i][6] = (int16_t)((inBuffer[12 + (i * 18)] << 8 | inBuffer[13 + (i * 18)] & 0xff));
-				magno[i][7] = (int16_t)((inBuffer[14 + (i * 18)] << 8 | inBuffer[15 + (i * 18)] & 0xff));
-				magno[i][8] = (int16_t)((inBuffer[16 + (i * 18)] << 8 | inBuffer[17 + (i * 18)] & 0xff));
-				for (int j = 0; j < 9; j++) {
-					if (magno[i][j] > negcheck) { //magno[i][j] = -(magno[i][j] - negcheck);//??????????????????????
-					}
-					if (j < 3) magno[i][j] = magno[i][j] * ascale;
-					else if (j > 2 && j < 6) magno[i][j] = magno[i][j] * gscale;
-					else {
-						//magno[i][j-6] = magno[i][j-6];
-						if (magno[i][j] > magmax[i][j - 6]) { magmax[i][j - 6] = magno[i][j]; }
-						if (magno[i][j] < magmin[i][j - 6]) { magmin[i][j - 6] = magno[i][j]; }
-						magbias[i][j - 6] = (magmax[i][j - 6] + magmin[i][j - 6]) / 2;
-						magscale[i][j - 6] = (magmax[i][j - 6] - magmin[i][j - 6]) / 2;
-						avgrad[i] = (magscale[i][0] + magscale[i][1] + magscale[i][2]) / 3;
-						if (magscale[i][j - 6] != 0) { scalebias[i][j - 6] = avgrad[i] / magscale[i][j - 6]; }
-						magno[i][j] -= magbias[i][j - 6];
-						magno[i][j] *= scalebias[i][j - 6];
-					}
-					//magno[i][j]=(float)(magno[i][j]*(((magadj[(-6+j)]-128) *.5)/128)+1);
-					// APPEND TO HISTORIES
-					for (int j = 0; j < 9; j++) {
-						nmag[i][j][off] = magno[i][j];
-						mhist[i][j][hcount] = magno[i][j];
-					}
-				}
-			}
-			// 5x imu6
-			for (int i = 0; i < 5; i++) {
-				// ACCEL
-				imu[i][0] = (int16_t)((inBuffer[54 + (i * 12)] << 8) | (inBuffer[55 + (i * 12)] & 0xff));
-				imu[i][1] = (int16_t)((inBuffer[56 + (i * 12)] << 8) | (inBuffer[57 + (i * 12)] & 0xff));
-				imu[i][2] = (int16_t)((inBuffer[58 + (i * 12)] << 8) | (inBuffer[59 + (i * 12)] & 0xff));
-				// GYRO
-				imu[i][3] = (int16_t)((inBuffer[60 + (i * 12)] << 8) | (inBuffer[61 + (i * 12)] & 0xff));
-				imu[i][4] = (int16_t)((inBuffer[62 + (i * 12)] << 8) | (inBuffer[63 + (i * 12)] & 0xff));
-				imu[i][5] = (int16_t)((inBuffer[64 + (i * 12)] << 8) | (inBuffer[65 + (i * 12)] & 0xff));
-
-				for (int j = 0; j < 6; j++) {
-					if (imu[i][j] > negcheck) {//imu[i][j] = -(imu[i][j] - negcheck);
-						if (j < 3) { imu[i][j] = imu[i][j] * ascale; }
-						else { imu[i][j] = imu[i][j] * gscale; }
-					}
-					// APPEND TO HISTORIES
-					for (int j = 0; j < 6; j++) {
-						nimu[i][j][off] = imu[i][j];
-						ihist[i][j][hcount] = imu[i][j];
-					}
-				}
-			}
-			// touch stuff
-			thumbPressure = ((inBuffer[114] << 8) | (inBuffer[115] & 0xff));
-			if (thumbPressure > maxpress) { maxpress = thumbPressure; }
-			if (thumbPressure < minpress) { minpress = thumbPressure; }
-			rangepress = maxpress - minpress;
-			normpress = (1.0f * thumbPressure - minpress) / rangepress;
-			switches[0] = 1 - inBuffer[116];
-			switches[1] = 1 - inBuffer[117];
-			switches[2] = 1 - inBuffer[118];
-			switches[3] = 1 - inBuffer[119];
-			switchbinary = (switches[3] << 3 | switches[2] << 2 | switches[1] << 1 | switches[0]);
-			ttime = ((inBuffer[120] << 8) | (inBuffer[121] & 0xff));
-			off = off + 1;
-			if (off == nframes) { off = 0; }
-
-			deltat = ttime / 1000000.0f;
-			hcount++;
-			if (hcount == histlength) { hcount = 0; }
-			sensorfusion();
-		}
-	}
-	updated = 1;
-	//ofLog() << coms << "ttime : "<<ttime << endl;
-	//ofLog() << coms << "deltat: " << deltat << endl;
 }
 
 Arm::Arm()
@@ -448,11 +475,6 @@ Arm::Arm()
 
 Arm::~Arm()
 {
-	//port.flush();
-	while (updated == 0) {
-		;
-	}
-	//port.close();
-	//stop();
-	//waitForThread();
+	stop();
+	waitForThread(true);
 }

@@ -8,16 +8,16 @@ using namespace glm;
 class Arm : public ofThread
 {
 public:
-	void armSetup(string com, int num);
+	void armSetup(string com, ofBoxPrimitive &par, int num);
 	void armUpdate();
 	void armDraw();
 	void handDraw();
+	void jointsDraw();
 
 	void Madgwick6(int i, float ax, float ay, float az, float gx, float gy, float gz);
 	void Madgwick9(int i, float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz);
 	void sensorfusion();
 	void testimus();
-	void testDraw();		
 
 	void start();
 	void stop();
@@ -25,10 +25,25 @@ public:
 
 	Arm();
 	~Arm();
+	//arm models
+	float ulen;
+	float llen;
+	float hlen;
+	ofBoxPrimitive upperArm;
+	ofBoxPrimitive lowerArm;
+	ofBoxPrimitive hand;
+	ofBoxPrimitive body;
 	//current matrix stuff
 	mat4 modelMatrix;
+	mat4 handpoint;
+
+	vec3 shoulderpos;
+	vec3 elbowpos;
+	vec3 wristpos;
+	vec3 handpos;
+
 	// serial communication variables
-	int sidenum;
+	int dir;
 	ofSerial port;
 	string coms;
 	bool firstContact = false;

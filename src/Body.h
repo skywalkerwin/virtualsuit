@@ -11,6 +11,7 @@ public:
 	void bodySetup();
 	void bodyUpdate();
 	void bodyDraw();
+	void torsoDraw();
 
 
 	void testimus();
@@ -21,6 +22,8 @@ public:
 	string leftcom = "COM4";
 	string rightcom = "COM5";
 
-	Arm larm, rarm;
+	Arm larm , rarm;
+	ofBoxPrimitive torso;
+	//vec3 neckpos;
 };
 
