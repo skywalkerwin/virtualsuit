@@ -4,11 +4,17 @@ using namespace glm;
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetVerticalSync(false);
-	ofSetFrameRate(500);
+	ofSetFrameRate(200);
 	//ofSetFrameRate(60);
 	ofSetColor(0, 255, 0);
 	ofBackground(0);
 	mybody.bodySetup();
+	ofEnableDepthTest();
+
+	cam.setPosition(ofGetWidth() / 2, ofGetHeight() / 2, 500);
+	cam.lookAt(mybody.torso);
+	cam.setFarClip(20000);
+
 }
 
 //--------------------------------------------------------------
@@ -21,27 +27,55 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
 	ofRotateXDeg(-90);
 
+	//cam.setGlobalPosition(vec3(0,0,0));
+	//cam.setGlobalPosition(vec3(0, 100, 20));
+	//cam.begin();
+
+	ofSetLineWidth(1);
 	ofPushMatrix();
 	mybody.bodyDraw();
-	ofPopMatrix();
-
-
-	ofSetColor(255, 0, 0);
-	vec4 origin(0, 0, 0, 1);
-	//vec3 lstart = mybody.larm.modelMatrix * origin;
-	//vec3 rstart = mybody.rarm.modelMatrix * origin;
-	//vec3 lstart = mybody.larm.elbow;
-	//vec3 rstart = mybody.rarm.elbow;
-	//ofLog() << "L: " << lstart;
-	//ofLog() << "R: " << rstart;
-	//ofDrawLine(lstart, rstart);
 
 	ofPopMatrix();
+	ofSetColor(255, 0, 100);
+	ofSetLineWidth(1);
+	for (int i = mybody.curLine + 1; i < mybody.maxLines-2; i++) {
+		ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
+		ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
+		ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
+	}
+	ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[mybody.maxLines - 1]);
+	ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.larm.handpoint[0]);
+	ofDrawLine(mybody.rarm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[0]);
+	for (int i = 0; i < mybody.curLine-1; i++) {
+		ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
+		ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
+		ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
+	}
+	//ofDrawLine(mybody.larm.handpoint[mybody.curLine - 1], mybody.larm.handpoint[mybody.curLine]);
+	//ofDrawLine(mybody.rarm.handpoint[mybody.curLine - 1], mybody.rarm.handpoint[mybody.curLine]);
 
+	//cam.end();
+	//cam.resetTransform();
+
+	ofPopMatrix();
+
+	ofPushMatrix();
+	ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
+	ofRotateZDeg(-90);
+	ofSetLineWidth(5);
+	ofSetColor(24, 202, 230);
+	ofDrawGridPlane(500, 100);
+	ofSetLineWidth(7);
+	//ofSetColor(216, 218, 231);
+	ofTranslate(0, .5, 0);
+	//ofDrawGridPlane(1000, 100);
+	ofSetLineWidth(5);
+	ofPopMatrix();
 
 
 }

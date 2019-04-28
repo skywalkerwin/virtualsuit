@@ -30,4 +30,5 @@ class ofApp : public ofBaseApp{
 		void exit();
 		
 		Body mybody;
+		ofEasyCam cam;
 };

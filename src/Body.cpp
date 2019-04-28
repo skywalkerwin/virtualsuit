@@ -2,6 +2,7 @@
 
 
 void Body::bodySetup() {
+	//torso.set(100, 100, 100);
 	larm.armSetup(leftcom, torso, -1);
 	rarm.armSetup(rightcom, torso, 1);
 	//ofSetIcoSphereResolution(12);
@@ -11,17 +12,25 @@ void Body::bodySetup() {
 void Body::bodyDraw() {
 	vec3 origin(0, 0, 0);
 	torso.setPosition(origin);
+	torsopos = torso.getGlobalPosition();
 	//neckpos = torso.getGlobalPosition();
 	larm.armDraw();
 	rarm.armDraw();
-	ofSetColor(255);
+	ofSetColor(255,0,0);
+	ofSetLineWidth(5);
 	ofDrawLine(larm.handpos, rarm.handpos);
+	ofSetColor(255);
+	torso.draw();
 
 }
 
 void Body::bodyUpdate() {
 	//larm.armUpdate();
 	//rarm.armUpdate();
+	curLine++;
+	if (curLine == maxLines) {
+		curLine = 0;
+	}
 }
 void Body::torsoDraw() {
 	vec3 origin(0, 0, 0);

@@ -8,7 +8,7 @@ using namespace glm;
 class Arm : public ofThread
 {
 public:
-	void armSetup(string com, ofBoxPrimitive &par, int num);
+	void armSetup(string com, ofNode &par, int num);
 	void armUpdate();
 	void armDraw();
 	void handDraw();
@@ -32,15 +32,24 @@ public:
 	ofBoxPrimitive upperArm;
 	ofBoxPrimitive lowerArm;
 	ofBoxPrimitive hand;
-	ofBoxPrimitive body;
+	//ofBoxPrimitive handtip;
+	ofNode body;
 	//current matrix stuff
 	mat4 modelMatrix;
-	mat4 handpoint;
-
+	//mat4 handpoint;
+	int hcount = 0;
+	static const int histlength = 180;
+	static const int nframes = 1;
+	static const int maxLines = 180;
+	int curLine = 0;
 	vec3 shoulderpos;
 	vec3 elbowpos;
 	vec3 wristpos;
 	vec3 handpos;
+	//vector<vec3> handpoint;
+	vec3 handpoint[histlength];
+
+	//vec3 handpoint[histlength] = vec3[histlength];
 
 	// serial communication variables
 	int dir;
@@ -54,9 +63,6 @@ public:
 	float imu[6][6];
 	float magno[3][9];
 	// sensor history
-	int hcount = 0;
-	static const int histlength = 180;
-	static const int nframes = 1;
 	float mhist[3][9][histlength];
 	float ihist[5][6][histlength];
 	float nimu[12][6][nframes];

@@ -23,7 +23,10 @@ public:
 	string rightcom = "COM5";
 
 	Arm larm , rarm;
-	ofBoxPrimitive torso;
+	ofNode torso;
+	vec3 torsopos;
+	static const int maxLines = 180;
+	int curLine = 0;
 	//vec3 neckpos;
 };
 

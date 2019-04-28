@@ -1,6 +1,6 @@
 #include "Arm.h"
 
-void Arm::armSetup(string c, ofBoxPrimitive &p, int n) {
+void Arm::armSetup(string c, ofNode &p, int n) {
 	//ofSetLogLevel(OF_LOG_VERBOSE);
 	dir = n;
 	coms = c;
@@ -13,7 +13,7 @@ void Arm::armSetup(string c, ofBoxPrimitive &p, int n) {
 	//ofLog() << "THREAD ID  " << getThreadId() << endl;
 	ulen = ofGetHeight() / 3;
 	llen = ofGetHeight() / 4;
-	hlen = ofGetHeight() / 8;
+	hlen = ofGetHeight() / 10;
 	body = p;
 	upperArm.setParent(body);
 	upperArm.set(50, ulen, 50);
@@ -21,6 +21,12 @@ void Arm::armSetup(string c, ofBoxPrimitive &p, int n) {
 	lowerArm.set(40, llen, 40);
 	hand.setParent(lowerArm);
 	hand.set(30, hlen, 30);
+
+	for (int i = 0; i < histlength; i++) {
+		//handpoint.push_back(vec3(0, 0, 0));
+		//handpoint.assign(histlength, vec3(0, 0, 0));
+		handpoint[i] = vec3(0, 0, 0);
+	}
 	int reso = 1;
 	upperArm.setResolution(reso);
 	lowerArm.setResolution(reso);
@@ -33,7 +39,7 @@ void Arm::armSetup(string c, ofBoxPrimitive &p, int n) {
 
 void Arm::armDraw() {
 	upperArm.setPosition(body.getGlobalPosition());
-	vec3 pos(dir * 100, 0, -200);
+	vec3 pos(dir * 150, 0, -200);
 	upperArm.move(pos);
 	shoulderpos = upperArm.getGlobalPosition();
 	upperArm.rotateDeg(yaw[0], upperArm.getZAxis());
@@ -41,9 +47,9 @@ void Arm::armDraw() {
 	upperArm.rotateDeg(roll[0], upperArm.getYAxis());
 	upperArm.boom(ulen / 2);
 	ofSetColor(0, 255, 0);
-	upperArm.draw();
-	ofSetColor(0);
-	upperArm.drawWireframe();
+	//upperArm.draw();
+	//ofSetColor(0);
+	//upperArm.drawWireframe();
 	upperArm.boom(ulen / 2);
 	elbowpos = upperArm.getGlobalPosition();
 	upperArm.resetTransform();
@@ -54,9 +60,9 @@ void Arm::armDraw() {
 	lowerArm.rotateDeg(roll[1], lowerArm.getYAxis());
 	lowerArm.boom(llen / 2);
 	ofSetColor(0, 255, 0);
-	lowerArm.draw();
-	ofSetColor(0);
-	lowerArm.drawWireframe();
+	//lowerArm.draw();
+	//ofSetColor(0);
+	//lowerArm.drawWireframe();
 	lowerArm.boom(llen / 2);
 	wristpos = lowerArm.getGlobalPosition();
 	lowerArm.resetTransform();
@@ -72,21 +78,34 @@ void Arm::handDraw() {
 	hand.rotateDeg(roll[2], hand.getYAxis());
 	hand.boom(hlen / 2);
 	ofSetColor(0, 255, 0);
-	hand.draw();
-	ofSetColor(0);
-	hand.drawWireframe();
+	//hand.draw();
+	//ofSetColor(0);
+	//hand.drawWireframe();
 	hand.boom(hlen / 2);
 	handpos = hand.getGlobalPosition();
+	handpoint[curLine] = hand.getGlobalPosition();
 	hand.resetTransform();
+	curLine++;
+	if (curLine == maxLines) {
+		curLine = 0;
+	}
 }
 
 void Arm::jointsDraw() {
-	ofSetColor(200, 200, 0);
+	ofSetColor(255, 255, 0);
 	ofDrawSphere(shoulderpos, 25);
-	ofSetColor(150, 150, 0);
-	ofDrawSphere(elbowpos, 18);
-	ofSetColor(100, 100, 0);
-	ofDrawSphere(wristpos, 12);
+	ofSetColor(180, 180, 0);
+	ofDrawSphere(elbowpos, 15);
+	ofSetColor(90, 90, 0);
+	ofDrawSphere(wristpos, 8);
+	ofSetColor(50, 50, 0);
+	ofDrawSphere(handpos, 3);
+	ofSetColor(0, 255, 0);
+	//ofSetColor(0, 0, 255);
+	ofDrawLine(shoulderpos, elbowpos);
+	ofDrawLine(elbowpos, wristpos);
+	ofDrawLine(wristpos, handpos);
+
 }
 
 void Arm::start() {
