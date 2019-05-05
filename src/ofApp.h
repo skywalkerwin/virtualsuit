@@ -7,6 +7,7 @@
 #include "ofxSerial.h"
 #include "Body.h"
 #include "Arm.h"
+#include "Sword.h"
 
 
 class ofApp : public ofBaseApp{
@@ -30,5 +31,6 @@ class ofApp : public ofBaseApp{
 		void exit();
 		
 		Body mybody;
+		Sword saber;
 		ofEasyCam cam;
 };

@@ -26,6 +26,7 @@ public:
 	Arm();
 	~Arm();
 	//arm models
+	bool drawBool = 1;
 	float ulen;
 	float llen;
 	float hlen;
@@ -48,6 +49,8 @@ public:
 	vec3 handpos;
 	//vector<vec3> handpoint;
 	vec3 handpoint[histlength];
+	//orientations
+	quat handquat;
 
 	//vec3 handpoint[histlength] = vec3[histlength];
 

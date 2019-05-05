@@ -10,10 +10,11 @@ void ofApp::setup(){
 	ofBackground(0);
 	mybody.bodySetup();
 	ofEnableDepthTest();
-
-	cam.setPosition(ofGetWidth() / 2, ofGetHeight() / 2, 500);
-	cam.lookAt(mybody.torso);
-	cam.setFarClip(20000);
+	saber.setupSword();
+	//cam.setPosition(ofGetWidth() / 2, ofGetHeight() / 2, 500);
+	//cam.lookAt(mybody.torso);
+	//cam.setFarClip(10000);
+	//cam.setAspectRatio(1.78);
 
 }
 
@@ -27,13 +28,25 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	ofPushMatrix();
+	ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
+	ofRotateZDeg(-90);
+	ofSetLineWidth(5);
+	ofSetColor(24, 202, 230);
+	ofDrawGridPlane(500, 2000);
+	ofSetLineWidth(7);
+	//ofSetColor(216, 218, 231);
+	ofTranslate(0, .5, 0);
+	//ofDrawGridPlane(1000, 100);
+	ofSetLineWidth(5);
+	ofPopMatrix();
 
+	ofDrawBitmapString(mybody.rarm.switchbinary, 20, 20);
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
 	ofRotateXDeg(-90);
-
 	//cam.setGlobalPosition(vec3(0,0,0));
-	//cam.setGlobalPosition(vec3(0, 100, 20));
+	//cam.setGlobalPosition(vec3(0, 200, 200));
 	//cam.begin();
 
 	ofSetLineWidth(1);
@@ -41,21 +54,23 @@ void ofApp::draw(){
 	mybody.bodyDraw();
 
 	ofPopMatrix();
-	ofSetColor(255, 0, 100);
-	ofSetLineWidth(1);
-	for (int i = mybody.curLine + 1; i < mybody.maxLines-2; i++) {
-		ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
-		ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
-		ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
-	}
-	ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[mybody.maxLines - 1]);
-	ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.larm.handpoint[0]);
-	ofDrawLine(mybody.rarm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[0]);
-	for (int i = 0; i < mybody.curLine-1; i++) {
-		ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
-		ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
-		ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
-	}
+	saber.drawSword(mybody.rarm.handquat, mybody.rarm.handpos, mybody.rarm.switchbinary);
+	//ofSetColor(255, 0, 100);
+	//ofSetLineWidth(1);
+	//for (int i = mybody.curLine + 1; i < mybody.maxLines-2; i++) {
+	//	ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
+	//	ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
+	//	ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
+	//}
+	//ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[mybody.maxLines - 1]);
+	//ofDrawLine(mybody.larm.handpoint[mybody.maxLines - 1], mybody.larm.handpoint[0]);
+	//ofDrawLine(mybody.rarm.handpoint[mybody.maxLines - 1], mybody.rarm.handpoint[0]);
+	//for (int i = 0; i < mybody.curLine-1; i++) {
+	//	ofDrawLine(mybody.larm.handpoint[i], mybody.rarm.handpoint[i]);
+	//	ofDrawLine(mybody.larm.handpoint[i], mybody.larm.handpoint[i+1]);
+	//	ofDrawLine(mybody.rarm.handpoint[i], mybody.rarm.handpoint[i+1]);
+	//}
+
 	//ofDrawLine(mybody.larm.handpoint[mybody.curLine - 1], mybody.larm.handpoint[mybody.curLine]);
 	//ofDrawLine(mybody.rarm.handpoint[mybody.curLine - 1], mybody.rarm.handpoint[mybody.curLine]);
 
@@ -64,18 +79,6 @@ void ofApp::draw(){
 
 	ofPopMatrix();
 
-	ofPushMatrix();
-	ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
-	ofRotateZDeg(-90);
-	ofSetLineWidth(5);
-	ofSetColor(24, 202, 230);
-	ofDrawGridPlane(500, 100);
-	ofSetLineWidth(7);
-	//ofSetColor(216, 218, 231);
-	ofTranslate(0, .5, 0);
-	//ofDrawGridPlane(1000, 100);
-	ofSetLineWidth(5);
-	ofPopMatrix();
 
 
 }
