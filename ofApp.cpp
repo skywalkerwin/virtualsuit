@@ -8,13 +8,17 @@ void ofApp::setup(){
 	//ofSetFrameRate(60);
 	ofSetColor(0, 255, 0);
 	ofBackground(0);
-	mybody.bodySetup();
 	ofEnableDepthTest();
-	saber.setupSword();
+	cycle.setupCycle();
+	mybody.bodySetup(cycle.core);
+	//saber.setupSword();
 	myorb.setupOrb();
-	//cam.setPosition(ofGetWidth() / 2, ofGetHeight() / 2, 500);
+	cam.setGlobalPosition(ofGetWidth() / 2, ofGetHeight() / 2, 0);
+	cam.rotateDeg(120, cam.getXAxis());
+
 	//cam.lookAt(mybody.torso);
-	//cam.setFarClip(10000);
+	//cam.lookAt(cycle.core);
+	cam.setFarClip(200000);
 	//cam.setAspectRatio(1.78);
 
 }
@@ -29,11 +33,21 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	//cam.setGlobalPosition(ofGetWidth() / 2, ofGetHeight() / 2, 1000);
+	//cam.setGlobalPosition(vec3(0, 500, 500));
+	//cam.rotateDeg(-90, cam.getXAxis());
+	ofDrawBitmapString(cam.getX(), 20, 20);
+	ofDrawBitmapString(cam.getY(), 20, 40);
+	ofDrawBitmapString(cam.getZ(), 20, 60);
+	cam.begin();
+
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
 	ofRotateZDeg(-90);
+
 	ofSetLineWidth(5);
 	ofSetColor(24, 202, 230);
+	//ofSetColor(254, 1, 154);
 	ofDrawGridPlane(500, 2000);
 	ofSetLineWidth(7);
 	//ofSetColor(216, 218, 231);
@@ -42,20 +56,19 @@ void ofApp::draw(){
 	ofSetLineWidth(5);
 	ofPopMatrix();
 
-	ofDrawBitmapString(mybody.rarm.switchbinary, 20, 20);
+	//ofDrawBitmapString(mybody.rarm.switchbinary, 20, 20);
+
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
 	ofRotateXDeg(-90);
-	//cam.setGlobalPosition(vec3(0,0,0));
-	//cam.setGlobalPosition(vec3(0, 200, 200));
-	//cam.begin();
-
 	ofSetLineWidth(1);
 	ofPushMatrix();
-	mybody.bodyDraw();
+	vec3 p=cycle.drawCycle();
 
+	mybody.bodyDraw(p);
+	ofDrawAxis(200);
 	ofPopMatrix();
-	saber.drawSword(mybody.rarm.handquat, mybody.rarm.handpos, mybody.rarm.switchbinary);
+	//saber.drawSword(mybody.rarm.handquat, mybody.rarm.handpos, mybody.rarm.switchbinary);
 	vec3 midpoint = (mybody.rarm.handpos + mybody.larm.handpos)/2;
 	myorb.drawOrb(midpoint);
 	//ofSetColor(255, 0, 100);
@@ -77,10 +90,22 @@ void ofApp::draw(){
 	//ofDrawLine(mybody.larm.handpoint[mybody.curLine - 1], mybody.larm.handpoint[mybody.curLine]);
 	//ofDrawLine(mybody.rarm.handpoint[mybody.curLine - 1], mybody.rarm.handpoint[mybody.curLine]);
 
-	//cam.end();
-	//cam.resetTransform();
-
 	ofPopMatrix();
+
+	//ofPushMatrix();
+	//ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
+	//ofRotateZDeg(-90);
+	//ofSetLineWidth(5);
+	//ofSetColor(24, 202, 230);
+	//ofDrawGridPlane(500, 2000);
+	//ofSetLineWidth(7);
+	////ofSetColor(216, 218, 231);
+	//ofTranslate(0, .5, 0);
+	////ofDrawGridPlane(1000, 100);
+	//ofSetLineWidth(5);
+	//ofPopMatrix();
+	cam.end();
+	//cam.resetTransform();
 
 
 

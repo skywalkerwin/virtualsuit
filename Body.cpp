@@ -1,25 +1,26 @@
 #include "Body.h"
 
 
-void Body::bodySetup() {
+void Body::bodySetup(ofNode &c) {
 	//torso.set(100, 100, 100);
 	larm.armSetup(leftcom, torso, -1);
 	rarm.armSetup(rightcom, torso, 1);
-
+	lcycle = c;
+	torso.setParent(c);
 }
 
-void Body::bodyDraw() {
-	vec3 origin(0, 0, 0);
-	torso.setPosition(origin);
+void Body::bodyDraw(vec3 v) {
+	vec3 offset(0, 0, -160);
+	torso.setGlobalPosition(v+offset);
 	torsopos = torso.getGlobalPosition();
 	//neckpos = torso.getGlobalPosition();
-	larm.armDraw();
-	rarm.armDraw();
+	larm.armDraw(torsopos);
+	rarm.armDraw(torsopos);
 	ofSetColor(255,0,0);
 	//ofSetLineWidth(5);
 	ofDrawLine(larm.handpos, rarm.handpos);
 	//ofSetColor(255);
-	//torso.draw();
+	torso.draw();
 
 }
 

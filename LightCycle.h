@@ -6,7 +6,7 @@ class LightCycle
 {
 public:
 	void setupCycle();
-	void drawCycle();
+	vec3 drawCycle();
 	LightCycle();
 	~LightCycle();
 

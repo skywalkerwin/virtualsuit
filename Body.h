@@ -8,9 +8,9 @@ class Body
 {
 public:
 	Body();
-	void bodySetup();
+	void bodySetup(ofNode &c);
 	void bodyUpdate();
-	void bodyDraw();
+	void bodyDraw(vec3 v);
 	void torsoDraw();
 
 
@@ -24,6 +24,7 @@ public:
 
 	Arm larm , rarm;
 	ofNode torso;
+	ofNode lcycle;
 	vec3 torsopos;
 	static const int maxLines = 180;
 	int curLine = 0;

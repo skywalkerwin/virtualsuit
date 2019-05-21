@@ -8,6 +8,7 @@
 #include "Body.h"
 #include "Arm.h"
 #include "Sword.h"
+#include "LightCycle.h"
 #include "Orb.h"
 
 
@@ -35,4 +36,8 @@ class ofApp : public ofBaseApp{
 		Sword saber;
 		Orb myorb;
 		ofEasyCam cam;
+		LightCycle cycle;
+		int z = 0;
+		int y = 0;
+		int x = 0;
 };
