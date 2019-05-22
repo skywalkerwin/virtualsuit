@@ -10,7 +10,7 @@ void Body::bodySetup(ofNode &c) {
 }
 
 void Body::bodyDraw(vec3 v) {
-	vec3 offset(0, 0, -160);
+	vec3 offset(0, 0, -120);
 	torso.setGlobalPosition(v+offset);
 	torsopos = torso.getGlobalPosition();
 	//neckpos = torso.getGlobalPosition();

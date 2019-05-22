@@ -11,6 +11,7 @@ public:
 	void armSetup(string com, ofNode &par, int num);
 	void armUpdate();
 	void armDraw(vec3 b);
+	void handtilt();
 	void handDraw();
 	void jointsDraw();
 

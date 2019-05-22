@@ -43,7 +43,7 @@ void Arm::armSetup(string c, ofNode &p, int n) {
 
 void Arm::armDraw(vec3 b) {
 	upperArm.setPosition(b);
-	vec3 pos(dir * 100, 0, -200);
+	vec3 pos(dir * 100, 0, -215);
 	upperArm.move(pos);
 	shoulderpos = upperArm.getGlobalPosition();
 	upperArm.rotateDeg(yaw[0], upperArm.getZAxis());
@@ -109,6 +109,20 @@ void Arm::handDraw() {
 	if (curLine == maxLines) {
 		curLine = 0;
 	}
+}
+
+void Arm::handtilt() {
+	ofBoxPrimitive h;
+	h.set(100);
+	ofSetColor(0, 255, 0);
+	ofPushMatrix();
+	ofRotateZDeg(yaw[2]);
+	ofRotateXDeg(pitch[2]);
+	ofRotateYDeg(roll[2]);
+	h.draw();
+	ofSetColor(0);
+	h.drawWireframe();
+	ofPopMatrix();
 }
 
 void Arm::jointsDraw() {

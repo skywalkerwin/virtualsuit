@@ -15,6 +15,9 @@
 class ofApp : public ofBaseApp{
 
 	public:
+
+		void updatePos();
+
 		void setup();
 		void update();
 		void draw();
