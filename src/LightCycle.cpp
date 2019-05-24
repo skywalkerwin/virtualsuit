@@ -2,21 +2,24 @@
 
 
 void LightCycle::setupCycle() {
-	wheel1.set(200, 200, 40, 1, 2, true);
-	wheel2.set(200, 200, 40, 1, 2, true);
+	wheel1.set(300, 300, 40, 1, 2, true);
+	wheel2.set(300, 300, 40, 1, 2, true);
 	//wheel1.setCylinderColor(ofColor(24, 202, 230));
 	//wheel1.setTopCapColor(ofColor(24, 202, 230));
 	//wheel2.setCylinderColor(ofColor(24, 202, 230));
 	//wheel2.setTopCapColor(ofColor(24, 202, 230));
-
+	//ofFloatColor(254, 1, 154, 50)
 	wheel1.setCylinderColor(ofColor(255));
 	wheel1.setTopCapColor(ofColor(255));
 	wheel1.setBottomCapColor(ofColor(255));
-	wheel2.setCylinderColor(ofColor(0,0,255));
-	wheel2.setTopCapColor(ofColor(0,0,255));
-	wheel2.setBottomCapColor(ofColor(0,0,255));
-	core.set(180, 800, 180);
-	core.setGlobalPosition(0, 0, 300);
+	//wheel2.setCylinderColor(ofColor(0,0,255));
+	//wheel2.setTopCapColor(ofColor(0,0,255));
+	//wheel2.setBottomCapColor(ofColor(0,0,255));
+	wheel2.setCylinderColor(ofColor(255, 0, 0));
+	wheel2.setTopCapColor(ofColor(255, 0, 0));
+	wheel2.setBottomCapColor(ofColor(255, 0, 0));
+	core.set(250, 1200, 250);
+	core.setGlobalPosition(0, 0, 300.5);
 
 	for(int i=0; i<6;i++){
 		core.setSideColor(i, ofColor(50));
@@ -34,6 +37,7 @@ void LightCycle::update() {
 	vec3 velVector = core.getYAxis() * vel;
 	//core.setGlobalPosition(core.getGlobalPosition()+velVector);
 	core.move(velVector);
+	//core.rotateDeg(dir, 0, 1, 0);
 }
 
 void LightCycle::brake() {
@@ -44,12 +48,37 @@ void LightCycle::accelerate(float a) {
 	acceleration += 0.005*a;
 }
 
+void LightCycle::steer(float d) {
+	dir += (d*.00005);
+	if (dir > 40) {
+		dir = 40;
+	}
+	if (dir < -40) {
+		dir = -40;
+	}
+	core.rotateDeg(dir, 0, 0, 1);
+}
+
+void LightCycle::drawTrail() {
+	//ofSetColor(24, 202, 230);
+	//ofSetColor(255);
+	//for (auto point : trail) {
+	//	ofPushMatrix();
+	//	ofDrawBox(point, 1, 1000, 1000);
+	//	//ofDrawPlane(point, 1000,1000);
+	//	ofPopMatrix();
+	//}
+	mtrail.draw();
+	//mtrail.drawVertices();
+	//mtrail.drawWireframe();
+}
+
 vec3 LightCycle::drawCycle() {
+	drawTrail();
 	vec3 p = core.getGlobalPosition();
-	//core.rotateDeg(50, core.getZAxis());
 	core.draw();
-	wheel1.boom(400);
-	wheel2.boom(-400);
+	wheel1.boom(600);
+	wheel2.boom(-600);
 	wheel1.rotateDeg(90, core.getZAxis());
 	wheel2.rotateDeg(90, core.getZAxis());
 

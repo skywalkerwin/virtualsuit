@@ -93,8 +93,8 @@ public:
 	double totalPress = 0;
 	// sensor fusion stuff...quaternions
 	float deltat = 0;
-	static constexpr float GyroMeasError = PI * (40.0 / 180.0); // gyroscope measurement error in rads/s (start at 40 deg/s)
-	static constexpr float GyroMeasDrift = PI * (0.0 / 180.0); // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
+	static constexpr float GyroMeasError = PI * (50.0 / 180.0); // gyroscope measurement error in rads/s (start at 40 deg/s)
+	static constexpr float GyroMeasDrift = PI * (10.0 / 180.0); // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
 	const float beta = sqrt(3.0 / 4.0) * GyroMeasError; // compute beta
 	const float zeta = sqrt(3.0 / 4.0) * GyroMeasDrift;
 	float q[8][4];//quaternions

@@ -10,17 +10,21 @@ void ofApp::setup(){
 	ofBackground(0);
 	ofEnableDepthTest();
 	cycle.setupCycle();
+	cycle.trail.push_back(cycle.core.getGlobalPosition());
+	cycle.mtrail.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+	cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
+	cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -1000));
+	cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
+	cycle.mtrail.addVertex(cycle.core.getGlobalPosition());
 	mybody.bodySetup(cycle.core.getGlobalPosition());
 	//saber.setupSword();
 	myorb.setupOrb();
-	//cam.setUpAxis(-cam.getYAxis());
-	//cam.setGlobalPosition(ofGetWidth() / 2, ofGetHeight() / 2, 0);
-	//cam.rotateDeg(120, cam.getXAxis());
-
-	//cam.lookAt(mybody.torso);
-	//cam.lookAt(cycle.core);
+	cam.setFov(90);
 	cam.setFarClip(200000);
-	//cam.setAspectRatio(1.78);
+	cam.setGlobalPosition(980, 1000, 3000);
+	//cam.lookAt(cycle.core);
+	//cam.setOrientation(vec3(-22, 0, 0));
+	//cam.tiltDeg(-22);
 
 }
 
@@ -39,12 +43,29 @@ void ofApp::draw(){
 	ofDrawBitmapString(cam.getY(), 20, 40);
 	ofDrawBitmapString(cam.getZ(), 20, 60);
 
-	ofDrawBitmapString(mybody.rarm.yaw[2], 20, 100);
-	ofDrawBitmapString(mybody.rarm.pitch[2], 20, 120);
-	ofDrawBitmapString(mybody.rarm.roll[2], 20, 140);
+	ofDrawBitmapString(cam.getHeadingDeg(), 20, 100);
+	ofDrawBitmapString(cam.getPitchDeg(), 20, 120);
+	ofDrawBitmapString(cam.getRollDeg(), 20, 140);
+	ofDrawBitmapString(cam.getLookAtDir(), 20, 160);
 
-	ofDrawBitmapString(cycle.core.getGlobalPosition(), 1700, 220);
-	ofDrawBitmapString(mybody.torso.getGlobalPosition(), 1700, 240);
+	ofDrawBitmapString(mybody.rarm.yaw[2], 20, 180);
+	ofDrawBitmapString(mybody.rarm.pitch[2], 20, 200);
+	ofDrawBitmapString(mybody.rarm.roll[2], 20, 220);
+
+	ofDrawBitmapString(cycle.core.getGlobalPosition(), 1700, 240);
+	ofDrawBitmapString(mybody.torso.getGlobalPosition(), 1700, 260);
+
+	ofDrawBitmapString(cycle.dir, 20, 280);
+	ofDrawBitmapString(cycle.core.getHeadingDeg(), 20, 300);
+	ofDrawBitmapString(cycle.core.getPitchDeg(), 20, 320);
+	ofDrawBitmapString(cycle.core.getRollDeg(), 20, 340);
+
+	cam.setGlobalPosition(cycle.core.getX(), 2000, -cycle.core.getY());
+	cam.rotateDeg(cycle.core.getRollDeg(), 0, 1, 0);
+	cam.move(cam.getZAxis() * 4000);
+	//cam.lookAt(cycle.core);
+
+	cam.tiltDeg(-25);
 
 	cam.begin();
 	ofScale(1, -1, 1);
@@ -56,7 +77,7 @@ void ofApp::draw(){
 
 	ofSetLineWidth(5);
 	ofSetColor(24, 202, 230);
-	ofDrawGridPlane(500, 2000);
+	ofDrawGridPlane(2000, 500);
 	ofSetLineWidth(7);
 	ofTranslate(0, .5, 0);
 	ofSetLineWidth(5);
@@ -81,6 +102,7 @@ void ofApp::draw(){
 	ofPopMatrix();
 
 	cam.end();
+	cam.resetTransform();
 	ofScale(1, 1, 1);
 	ofPushMatrix();
 	ofRotateXDeg(-90);
@@ -96,12 +118,25 @@ void ofApp::draw(){
 }
 
 void ofApp::updatePos() {
+	ofLog() << distance(cycle.core.getGlobalPosition(), cycle.trail.back()) << endl;
+	if (distance(cycle.core.getGlobalPosition(), cycle.trail.back()) > 1000) {
+		cycle.trail.push_back(cycle.core.getGlobalPosition());
+		cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
+		cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -1000));
+		cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
+		cycle.mtrail.addVertex(cycle.core.getGlobalPosition());
+		//ofSetColor(255);
+		//ofDrawBox(vec3(cycle.core.getGlobalPosition()), 1000);
+		//ofLog() << "BOX" << endl;
+	}
 	float accel = 0;
 	if (mybody.rarm.switchbinary == 1) {
 		accel = mybody.rarm.pitch[2];
 		cycle.accelerate(accel);
 	}
 	cycle.update();
+	cycle.steer(mybody.rarm.roll[2]);
+
 	mybody.bodyUpdate(cycle.core.getGlobalPosition());
 }
 
