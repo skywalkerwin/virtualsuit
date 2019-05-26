@@ -10,10 +10,10 @@ void ofApp::setup(){
 	ofBackground(0);
 	ofEnableDepthTest();
 	cycle.setupCycle();
-	cycle.trail.push_back(cycle.core.getGlobalPosition());
+	cycle.trailhist.push_back(cycle.core.getGlobalPosition());
 	cycle.mtrail.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
 	cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
-	cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -1000));
+	cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -2000));
 	cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
 	cycle.mtrail.addVertex(cycle.core.getGlobalPosition());
 	mybody.bodySetup(cycle.core.getGlobalPosition());
@@ -60,17 +60,16 @@ void ofApp::draw(){
 	ofDrawBitmapString(cycle.core.getPitchDeg(), 20, 320);
 	ofDrawBitmapString(cycle.core.getRollDeg(), 20, 340);
 
-	cam.setGlobalPosition(cycle.core.getX(), 2000, -cycle.core.getY());
+	cam.setGlobalPosition(cycle.core.getX(), 5000, -cycle.core.getY());
 	cam.rotateDeg(cycle.core.getRollDeg(), 0, 1, 0);
-	cam.move(cam.getZAxis() * 4000);
+	cam.move(cam.getZAxis() * 6000);
 	//cam.lookAt(cycle.core);
 
 	cam.tiltDeg(-25);
 
 	cam.begin();
 	ofScale(1, -1, 1);
-	//cam.lookAt(cycle.core);
-	//cam.setTarget(cycle.core);
+
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight(), 0);
 	ofRotateZDeg(-90);
@@ -83,7 +82,6 @@ void ofApp::draw(){
 	ofSetLineWidth(5);
 	ofPopMatrix();
 
-	//ofDrawBitmapString(mybody.rarm.switchbinary, 20, 20);
 
 	ofPushMatrix();
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 0);
@@ -104,13 +102,16 @@ void ofApp::draw(){
 	cam.end();
 	cam.resetTransform();
 	ofScale(1, 1, 1);
-	ofPushMatrix();
-	ofRotateXDeg(-90);
-	ofTranslate(ofGetWidth() / 4, ofGetHeight() / 2, 0);
-	mybody.larm.handtilt();
-	ofTranslate(ofGetWidth() / 2, 0, 0);
-	mybody.rarm.handtilt();
-	ofPopMatrix();
+	//ofPushMatrix();
+	//ofRotateXDeg(-90);
+	//ofTranslate(ofGetWidth() / 4, ofGetHeight() / 2, 0);
+	//mybody.larm.handtilt();
+	//ofTranslate(ofGetWidth() / 2, 0, 0);
+	//mybody.rarm.handtilt();
+	//ofPopMatrix();
+
+
+	mybody.testimus();
 	//cam.resetTransform();
 
 
@@ -118,24 +119,26 @@ void ofApp::draw(){
 }
 
 void ofApp::updatePos() {
-	ofLog() << distance(cycle.core.getGlobalPosition(), cycle.trail.back()) << endl;
-	if (distance(cycle.core.getGlobalPosition(), cycle.trail.back()) > 1000) {
-		cycle.trail.push_back(cycle.core.getGlobalPosition());
+	ofLog() << distance(cycle.core.getGlobalPosition(), cycle.trailhist.back()) << endl;
+	if (distance(cycle.core.getGlobalPosition(), cycle.trailhist.back()) > 1000) {
+		cycle.trailhist.push_back(cycle.core.getGlobalPosition());
 		cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
-		cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -1000));
+		cycle.mtrail.addVertex(cycle.core.getGlobalPosition() + vec3(0, 0, -2000));
 		cycle.mtrail.addColor(ofColor(255, 0, 0, 150));
 		cycle.mtrail.addVertex(cycle.core.getGlobalPosition());
-		//ofSetColor(255);
-		//ofDrawBox(vec3(cycle.core.getGlobalPosition()), 1000);
-		//ofLog() << "BOX" << endl;
+
 	}
 	float accel = 0;
 	if (mybody.rarm.switchbinary == 1) {
-		accel = mybody.rarm.pitch[2];
+
+		accel = mybody.rarm.normpress;
 		cycle.accelerate(accel);
 	}
-	cycle.update();
+	if (mybody.rarm.switchbinary == 2) {
+		cycle.brake();
+	}
 	cycle.steer(mybody.rarm.roll[2]);
+	cycle.update();
 
 	mybody.bodyUpdate(cycle.core.getGlobalPosition());
 }

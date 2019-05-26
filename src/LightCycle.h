@@ -18,7 +18,8 @@ public:
 	ofCylinderPrimitive wheel1;
 	ofCylinderPrimitive wheel2;
 	ofBoxPrimitive core;
-	vector<vec3> trail;
+	vector<vec3> trailhist;
+	vector<vec3> boxhist;
 	ofMesh mtrail;
 	float acceleration;
 	float vel;

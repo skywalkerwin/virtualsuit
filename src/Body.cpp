@@ -45,14 +45,29 @@ void Body::torsoDraw() {
 }
 
 void Body::testimus() {
-	ofPushMatrix();
-	ofTranslate(1 * ofGetWidth() / 4, 0, 0);
-	larm.testimus();
-	ofPopMatrix();
-	ofPushMatrix();
-	ofTranslate(3 * ofGetWidth() / 4, 0, 0);
-	rarm.testimus();
-	ofPopMatrix();
+	//ofPushMatrix();
+	//ofTranslate(1 * ofGetWidth() / 4, 0, 0);
+	//larm.testimus();
+	//ofPopMatrix();
+	//ofPushMatrix();
+	//ofTranslate(3 * ofGetWidth() / 4, 0, 0);
+	//rarm.testimus();
+	//ofPopMatrix();
+	ofSetColor(255);
+	ofDrawBitmapString(rarm.pitch[3], ofGetWidth() - 100, 20);
+	ofDrawBitmapString(rarm.pitch[4], ofGetWidth() - 100, 40);
+	ofDrawBitmapString(rarm.pitch[5], ofGetWidth() - 100, 60);
+	ofDrawBitmapString(rarm.pitch[6], ofGetWidth() - 100, 80);
+	ofDrawBitmapString(rarm.pitch[7], ofGetWidth() - 100, 100);
+
+	ofDrawBitmapString(rarm.roll[3], ofGetWidth() - 100, 140);
+	ofDrawBitmapString(rarm.roll[5], ofGetWidth() - 100, 160);
+	ofDrawBitmapString(rarm.roll[4], ofGetWidth() - 100, 180);
+	ofDrawBitmapString(rarm.roll[6], ofGetWidth() - 100, 200);
+	ofDrawBitmapString(rarm.roll[7], ofGetWidth() - 100, 220);
+
+
+
 }
 
 Body::Body()

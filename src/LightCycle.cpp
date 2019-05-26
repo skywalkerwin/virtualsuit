@@ -41,33 +41,45 @@ void LightCycle::update() {
 }
 
 void LightCycle::brake() {
-	acceleration -= 0.1;
+	acceleration -= 0.5;
 }
 
 void LightCycle::accelerate(float a) {
-	acceleration += 0.005*a;
+	acceleration += 1.1* a;
 }
 
 void LightCycle::steer(float d) {
-	dir += (d*.00005);
-	if (dir > 40) {
-		dir = 40;
-	}
-	if (dir < -40) {
-		dir = -40;
-	}
+	//dir += (d*.00012);
+	//dir = d;
 	core.rotateDeg(dir, 0, 0, 1);
+	//if (dir > 60) {
+	//	dir = 60;
+	//}
+	//if (dir < -60) {
+	//	dir = -60;
+	//}
+	dir += d/8;
+	core.rotateDeg(d/8, 0, 0, 1);
 }
 
 void LightCycle::drawTrail() {
 	//ofSetColor(24, 202, 230);
 	//ofSetColor(255);
-	//for (auto point : trail) {
-	//	ofPushMatrix();
-	//	ofDrawBox(point, 1, 1000, 1000);
-	//	//ofDrawPlane(point, 1000,1000);
-	//	ofPopMatrix();
+	//for (auto point : trailhist) {
+	//	if (distance(core.getGlobalPosition(), point) < 500) {
+	//		boxhist.push_back(point);
+	//	}
 	//}
+	int tlen = trailhist.size();
+	for (int i = 0; i < tlen; i++) {
+		if (i< (tlen-10) && distance(core.getGlobalPosition(), trailhist[i]) < 1100) {
+			boxhist.push_back(trailhist[i]);
+		}
+	}
+	ofSetColor(255);
+	for (auto point : boxhist) {
+		ofDrawBox(point, 2000);
+	}
 	mtrail.draw();
 	//mtrail.drawVertices();
 	//mtrail.drawWireframe();
@@ -87,6 +99,7 @@ vec3 LightCycle::drawCycle() {
 	//core.resetTransform();
 	wheel1.resetTransform();
 	wheel2.resetTransform();
+	core.rotateDeg(-dir, 0, 0, 1);
 	return p;
 }
 

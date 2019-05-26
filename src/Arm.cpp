@@ -165,17 +165,44 @@ void Arm::threadedFunction() {
 }
 
 void Arm::testimus() {
+
+	//for (int i = 0; i < 8; i++) {
+	//	ofBoxPrimitive h;
+	//	h.set(100);
+	//	ofSetColor(0, 255, 0);
+	//	ofPushMatrix();
+	//	ofTranslate(0, (1 + i) * ofGetHeight() / 9, 0);
+	//	ofRotateXDeg(-90);
+	//	ofRotateZDeg(yaw[i]);
+	//	ofRotateXDeg(pitch[i]);
+	//	ofRotateYDeg(roll[i]);
+	//	//ofSetColor(0, 255, 0);
+	//	//ofNoFill();
+	//	//ofDrawBox(50);
+	//	h.draw();
+	//	ofSetColor(0);
+	//	h.drawWireframe();
+	//	ofPopMatrix();
+	//	ofLog() << "i: " << i << "   yaw: " << yaw[i] << "    pitch: " << pitch[i] << "     roll:" << roll[i] << endl;
+	//}
 	for (int i = 0; i < 8; i++) {
+		ofBoxPrimitive h;
+		h.set(100);
+		ofSetColor(0, 255, 0);
 		ofPushMatrix();
 		ofTranslate(0, (1 + i) * ofGetHeight() / 9, 0);
-		ofRotateXDeg(-90);
-		ofRotateZDeg(yaw[i]);
-		ofRotateXDeg(pitch[i]);
-		ofRotateYDeg(roll[i]);
-		ofSetColor(0, 255, 0);
-		ofNoFill();
-		ofDrawBox(50);
+		//ofRotateXDeg(-90);
+		//h.rotateDeg(yaw[i], h.getZAxis());
+		h.rotateDeg(pitch[i], h.getXAxis());
+		//h.rotateDeg(roll[i], h.getYAxis());
+		//ofSetColor(0, 255, 0);
+		//ofNoFill();
+		//ofDrawBox(50);
+		h.draw();
+		ofSetColor(0);
+		h.drawWireframe();
 		ofPopMatrix();
+		ofLog() << "i: " << i << "   yaw: " << yaw[i] << "    pitch: " << pitch[i] << "     roll:" << roll[i] << endl;
 	}
 }
 	
@@ -508,6 +535,7 @@ void Arm::sensorfusion() {
 			q[i][0] * q[i][0] - q[i][1] * q[i][1] - q[i][2] * q[i][2] + q[i][3] * q[i][3]);
 		pitch[i] *= 180.0 / PI;
 		yaw[i] *= 180.0 / PI;
+		//yaw[i] *= 0;
 		roll[i] *= 180.0 / PI;
 	}
 	//for (int i = 0; i < 8; i++) {
